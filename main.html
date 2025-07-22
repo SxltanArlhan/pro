@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Student RPG Freelance Board</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background: #241b37 url('img/pixel-bg.gif'); color: #ffe478; font-family: 'Press Start 2P', 'Kanit', Arial, sans-serif;}
+    .mainwrap { max-width: 1000px; margin: 38px auto; background: rgba(32,19,64,0.98); border-radius: 22px; box-shadow: 0 0 42px #000b; padding: 38px 20px 32px 20px;}
+    .job-board { background: #22192e99; border-radius: 14px; margin-top: 32px; padding: 22px 13px 18px 13px; box-shadow:0 2px 16px #2a1c4933;}
+    .job-card { border:2px solid #ffe478; border-radius: 13px; background: #31245e; margin-bottom: 18px; padding:15px 16px;}
+    .job-title { font-weight:700; color:#ffe478; font-size:1.11em;}
+    .job-meta { color:#e9db81; font-size:0.95em;}
+    .job-poster { display:flex;align-items:center;margin-top:6px;font-size:0.98em;}
+    .poster-name { font-weight:600;color:#fff; text-shadow:0 1px 4px #000b;}
+    .avatar-xmini { width:32px;height:32px;object-fit:cover;border-radius:50%;border:2px solid #ffe478;background:#fff;margin-right:7px;}
+    .poster-status-btn { font-size:1.13em; margin-left:7px; color:#ffe478; border:none; background: none;}
+    .stat-bar { background:#473a66;border-radius:8px;overflow:hidden;height:18px;width:70px;display:inline-block;margin-right:7px; }
+    .stat-bar-inner { height:100%;background:#ffe478; }
+    .navbar { background: #22192e99; box-shadow:0 3px 18px #000b;}
+    .profile-btn { border: none; background: none; cursor: pointer; position: relative;}
+    .avatar-mini { width: 42px; height: 42px; border-radius: 50%; border: 3px solid #ffe478; object-fit: cover; background: #fff; }
+    .navbar-brand { color: #ffe478 !important; font-weight:700; font-size:1.10em; letter-spacing:1.5px;}
+    ::selection { background:#ffe478;color:#241b37;}
+    /* Floating Chat/Quest Buttons */
+    #chat-float-btn, #quest-float-btn {
+      position: fixed;
+      right: 36px;
+      z-index: 100;
+      border-radius: 50%;
+      border: 2px solid #ffe478;
+      box-shadow: 0 2px 16px #ffe47866;
+      width: 40px; height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.24em;
+      transition: box-shadow .18s, transform .15s;
+      padding: 0;
+      outline: none;
+    }
+    #chat-float-btn {
+      bottom: 92px;
+      background: #39a5f8;
+      color: #fff;
+    }
+    #quest-float-btn {
+      bottom: 38px;
+      background: #ffce36;
+      color: #fff;
+    }
+    #chat-float-btn:hover, #quest-float-btn:hover {
+      box-shadow: 0 6px 26px #ffe478;
+      transform: scale(1.10);
+    }
+    /* Floating Chat */
+    #floating-chat-box {
+      display: none; position: fixed; bottom: 148px; right: 36px; width: 320px; max-width:96vw; z-index:99999;
+    }
+    #chat-box-inner {
+      background: #fffbe7; color: #28223e; border-radius: 13px; box-shadow: 0 2px 36px #000b; border:2px solid #ffe478;
+      font-family: 'Kanit', Arial, sans-serif; 
+      overflow: hidden;
+    }
+    #chat-header {
+      background: #ffe478; color: #7c5d16; font-family: 'Press Start 2P'; font-size: 1.03em;
+      padding: 9px 15px; border-radius: 12px 12px 0 0; display: flex; align-items: center; gap: 7px;
+      border-bottom: 2px solid #e6c245;
+    }
+    #chat-messages {
+      height: 175px; overflow-y: auto; padding: 12px 10px; font-size: 1em; background: #fffbe7;
+    }
+    #chat-input-row { padding: 7px 10px 10px 10px; background: #fffbe7;}
+    #chat-input { width: 74%; border-radius: 7px; border: 1px solid #ffe478; padding: 4px 7px;}
+    #chat-send-btn { background: #ffe478; color: #5a4814; border: none; border-radius: 7px; font-family: 'Press Start 2P'; padding:4px 13px; margin-left:7px;}
+    #chat-close-btn { margin-left: auto; color:#7c5d16; background:none; border:none; font-size:1.19em;}
+    /* Chat List Popup */
+    #chat-list-modal .modal-content { border-radius:15px; background:#24223e; color:#ffe478; }
+    #chat-list-modal .chat-user-row:hover { background:#ffe47822; cursor:pointer;}
+    #chat-list-modal .chat-user-avatar { width:36px; height:36px; border-radius:50%; border:2px solid #ffe478; object-fit:cover; background:#fff; margin-right:10px;}
+    #chat-list-modal .modal-title { color:#ffe478;}
+    @media (max-width:700px){
+      .mainwrap{padding:8px 2px;}
+      .job-board{padding:10px 4px 10px 4px;}
+      .navbar-brand{font-size:1.05em;}
+      #floating-chat-box{right:2vw;}
+      #chat-float-btn,#quest-float-btn{right:2vw;}
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar with Profile -->
+  <nav class="navbar navbar-expand-lg mb-4">
+    <div class="container-fluid">
+      <span class="navbar-brand"><i class="bi bi-controller"></i> RPG Freelance Board</span>
+      <div class="ms-auto">
+        <button class="profile-btn" onclick="showProfileModal()">
+          <img id="avatar-mini" class="avatar-mini" src="img/av01.png" alt="Me">
+        </button>
+      </div>
+    </div>
+  </nav>
+  <div class="mainwrap shadow-lg">
+    <div class="job-board">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="bi bi-briefcase"></i> กระดานรับงาน / จ้างงาน</h4>
+        <button class="btn btn-success btn-sm" style="font-family:'Press Start 2P'" onclick="addJob()">+ ประกาศงานใหม่</button>
+      </div>
+      <div id="job-list"></div>
+    </div>
+  </div>
+  <!-- Floating Quest Button -->
+  <button id="quest-float-btn" title="ทำเควสอัป Status"><i class="bi bi-trophy-fill"></i></button>
+  <!-- Floating Chat List Button -->
+  <button id="chat-float-btn" title="ดูประวัติแชทกับผู้ใช้"><i class="bi bi-chat-dots-fill"></i></button>
+
+  <!-- Floating Chat Box -->
+  <div id="floating-chat-box">
+    <div id="chat-box-inner">
+      <div id="chat-header">
+        <img id="chat-avatar" src="img/av01.png" style="width:32px;height:32px;border-radius:50%;border:2px solid #ffe478;background:#fff;">
+        <span id="chat-title"></span>
+        <button id="chat-close-btn" onclick="closeChat()"><i class="bi bi-x"></i></button>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-input-row">
+        <input id="chat-input" type="text" placeholder="พิมพ์ข้อความ..." maxlength="120"/>
+        <button id="chat-send-btn" onclick="sendChatMessage()">ส่ง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: รายชื่อคนที่เคยแชท -->
+  <div class="modal fade" id="chat-list-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-chat-dots"></i> ประวัติแชทกับผู้ใช้</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="chat-user-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Profile Info -->
+  <div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-2" style="border-radius:18px; background: #241b37;">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-circle"></i> โปรไฟล์ของฉัน</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:18px 6px 6px 6px;">
+        <div class="text-center mb-2">
+          <img id="avatar-modal" style="width:90px;height:90px;object-fit:contain;background:#f6f9fd;border-radius:15px;border:3px solid #ffe478;">
+        </div>
+        <div class="text-center mb-2">
+          <div style="font-size:1.1em;font-weight:700;" id="profile-name"></div>
+          <div style="font-size:1em;color:#ffe478;" id="profile-email"></div>
+          <div style="font-size:1.08em;color:#fffbe7;background:#473a66;border-radius:7px;display:inline-block;padding:3px 13px;" id="profile-comment"></div>
+        </div>
+        <div class="mb-1 text-center" style="font-size:1.02em;">
+          <span id="stat-total-modal" class="badge bg-warning mb-1" style="font-size:1em;color:#222;"></span>
+        </div>
+        <div class="mb-3 text-center">
+          <canvas id="radarChartModal" width="160" height="160"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  <!-- MODAL: Job Poster Profile -->
+  <div class="modal fade" id="posterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-2" style="border-radius:18px;">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-person-square"></i> โปรไฟล์ผู้โพสต์</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="padding:14px 5px 6px 5px;">
+          <div class="text-center mb-2">
+            <img id="poster-avatar-modal" style="width:75px;height:75px;object-fit:contain;background:#473a66;border-radius:13px;border:2px solid #ffe478;">
+          </div>
+          <div class="text-center mb-2">
+            <div style="font-size:1.1em;font-weight:700;" id="poster-name"></div>
+            <div style="font-size:1em;color:#ffe478;" id="poster-comment"></div>
+          </div>
+          <div class="mb-1 text-center" style="font-size:1em;">
+            <span id="poster-stat-total" class="badge bg-warning mb-1" style="font-size:1em;color:#222;"></span>
+          </div>
+          <div class="mb-3 text-center">
+            <canvas id="posterRadarChart" width="130" height="130"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- MODAL: ประกาศงานใหม่ -->
+  <div class="modal fade" id="jobModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="jobForm">
+        <div class="modal-header">
+          <h5 class="modal-title">ประกาศงานใหม่</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label">หัวข้องาน *</label>
+            <input type="text" class="form-control" id="jobTitle" required maxlength="40">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">รายละเอียด *</label>
+            <textarea class="form-control" id="jobDesc" rows="2" maxlength="150" required></textarea>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">หมวดงาน</label>
+            <select class="form-select" id="jobCat">
+              <option>Drawing/Design</option>
+              <option>Programming</option>
+              <option>Language</option>
+              <option>Critical & Creative Thinking</option>
+              <option>Digital & Tool Literacy</option>
+              <option>IoT</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">งบประมาณ (บาท)</label>
+            <input type="text" class="form-control" id="jobBudget" maxlength="30" placeholder="เช่น 500-1,000">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" type="submit">โพสต์งาน</button>
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">ยกเลิก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- MODAL: Quest -->
+  <div class="modal fade" id="questModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content p-2" style="border-radius:18px;min-width:350px;">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-trophy"></i> เควสเสริมอัป Status</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="padding:16px 9px;">
+          <div id="quest-select"></div>
+          <form id="quest-form" class="d-none">
+            <div id="quest-questions"></div>
+            <button class="btn btn-success mt-3" type="submit">ส่งคำตอบเควส</button>
+          </form>
+          <div id="quest-result" class="mt-3 text-success fw-bold"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  // ==== USER PROFILE (localStorage) ====
+  const avatarIndex = Number(localStorage.getItem('avatarIndex') || 0);
+  const avatarList = [
+    "img/av01.png","img/av02.png","img/av03.png","img/av04.png","img/av05.png"
+  ];
+  const userName = localStorage.getItem('displayName') || "นักศึกษา";
+  const userEmail = localStorage.getItem('email') || "";
+  const userComment = localStorage.getItem('comment') || "";
+  let skillStats = JSON.parse(localStorage.getItem("skillStats") || "[10,20,30,10,30,10]");
+  let totalStat = localStorage.getItem("totalStat") || skillStats.reduce((a,b)=>a+b,0);
+  document.getElementById("avatar-mini").src = avatarList[avatarIndex] || avatarList[0];
+
+  function showProfileModal() {
+    document.getElementById("avatar-modal").src = avatarList[avatarIndex] || avatarList[0];
+    document.getElementById("profile-name").textContent = userName;
+    document.getElementById("profile-email").textContent = userEmail;
+    document.getElementById("profile-comment").textContent = userComment;
+    document.getElementById("stat-total-modal").textContent = `คะแนนรวม: ${totalStat} / 600`;
+    setTimeout(()=>{ drawProfileRadar(skillStats,'radarChartModal'); }, 80);
+    new bootstrap.Modal(document.getElementById('profileModal')).show();
+  }
+
+  // ==== Draw Radar Chart (user & poster) ====
+  let radarProfileChart, radarPosterChart;
+  function drawProfileRadar(stats,canvasId){
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    if(canvasId=='radarChartModal' && radarProfileChart) radarProfileChart.destroy();
+    if(canvasId=='posterRadarChart' && radarPosterChart) radarPosterChart.destroy();
+    let cLabels = ["IoT", "Programming", "Language", "Drawing/Design", "Critical & Creative Thinking", "Digital & Tool Literacy"];
+    let cData = { labels: cLabels, datasets: [{ label: "Skill Stats", data: stats, fill: true, pointRadius: 3, borderWidth: 2, backgroundColor: 'rgba(255,228,120,0.2)', borderColor: '#ffe478', pointBackgroundColor: '#ffe478' }] };
+    let cOptions = { plugins: { legend: { display: false } }, scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } } };
+    if(canvasId=='radarChartModal')
+      radarProfileChart = new Chart(ctx, {type:'radar',data:cData,options:cOptions});
+    else
+      radarPosterChart = new Chart(ctx, {type:'radar',data:cData,options:cOptions});
+  }
+
+  // ==== JOB BOARD (with poster info) ====
+  let jobs = JSON.parse(localStorage.getItem("jobBoard") || "[]");
+  if (!jobs || jobs.length === 0) {
+    jobs = [
+      { title: "วาดภาพประกอบโปรเจกต์", desc: "ต้องการคนวาดภาพแนว pixel art สำหรับเกม", cat: "Drawing/Design", budget: "800", displayName: "PixelMint", avatarIndex: 1, comment: "วาดไว คุยง่าย", stats:[18,20,14,70,15,20] },
+      { title: "เขียน Python รับส่งข้อมูล", desc: "ต้องการ script ดึง API", cat: "Programming", budget: "1,000", displayName: "ITPong", avatarIndex: 2, comment: "Python/JS ได้", stats:[12,80,10,15,16,13] },
+      { title: "ติวภาษาอังกฤษ สายโอลิมปิก", desc: "สอนภาษาอังกฤษเพื่อแข่ง", cat: "Language", budget: "650", displayName: "TeacherJoy", avatarIndex: 3, comment: "ENG ทุกระดับ", stats:[10,10,95,14,16,14] },
+      { title: "ออกแบบโปสเตอร์ event", desc: "ขอคนออกแบบโปสเตอร์สายปัง", cat: "Drawing/Design", budget: "900", displayName: "MintPoster", avatarIndex: 1, comment: "สายศิลป์", stats:[11,15,13,80,21,20] },
+      { title: "แก้โค้ดเว็บ React", desc: "debug รีบใช้!", cat: "Programming", budget: "1,200", displayName: "Deverr", avatarIndex: 0, comment: "React/Node", stats:[10,90,11,11,20,15] },
+      { title: "เชื่อม IoT ESP32 กับ Cloud", desc: "ต้องการ connect IoT", cat: "IoT", budget: "1,100", displayName: "IoTee", avatarIndex: 4, comment: "IoT Solution", stats:[92,17,12,10,18,18] },
+      { title: "ฝึกออกเสียงภาษาอังกฤษ", desc: "สนทนา 1-1 ชิวๆ", cat: "Language", budget: "450", displayName: "BilingualMax", avatarIndex: 3, comment: "พูดได้หลายภาษา", stats:[10,11,85,11,15,10] },
+      { title: "ทำ Portfolio แนว Interactive", desc: "สาย UI/UX เท่านั้น", cat: "Drawing/Design", budget: "1,800", displayName: "UXKING", avatarIndex: 2, comment: "UX Designer", stats:[18,19,18,78,22,25] },
+      { title: "หาคนคิดไอเดียเกมมือถือ", desc: "ขอไอเดียปัง ๆ ไม่ซ้ำ", cat: "Critical & Creative Thinking", budget: "750", displayName: "Idearista", avatarIndex: 0, comment: "ไอเดียล้ำ", stats:[11,15,16,20,93,12] },
+      { title: "สอนใช้ Google Workspace", desc: "ใช้งานคลาวด์-ออนไลน์", cat: "Digital & Tool Literacy", budget: "550", displayName: "GuruGoogle", avatarIndex: 2, comment: "สายดิจิทัล", stats:[13,15,12,15,18,80] }
+    ];
+    localStorage.setItem("jobBoard", JSON.stringify(jobs));
+  }
+
+  const jobList = document.getElementById("job-list");
+  function renderJobs() {
+    jobList.innerHTML = '';
+    jobs.forEach(j => {
+      const avgStat = j.stats.reduce((a,b)=>a+b,0)/j.stats.length;
+      jobList.innerHTML += `<div class="job-card">
+        <div class="job-title">${escapeHtml(j.title)}</div>
+        <div class="job-meta mt-1">
+          <div class="job-poster">
+            <img class="avatar-xmini" src="${avatarList[j.avatarIndex] || avatarList[0]}">
+            <span class="poster-name">${escapeHtml(j.displayName)}</span>
+            <span class="stat-bar"><span class="stat-bar-inner" style="width:${Math.min(100,avgStat)}%"></span></span>
+            <button class="poster-status-btn" title="ดูโปรไฟล์"
+                onclick='showPosterProfile(${JSON.stringify(j)})'><i class="bi bi-bar-chart"></i></button>
+            <button class="btn btn-sm btn-warning ms-2" onclick="openChat('${escapeHtml(j.displayName)}', '${avatarList[j.avatarIndex]}')"><i class="bi bi-chat-dots"></i></button>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+  function showPosterProfile(j) {
+    document.getElementById("poster-avatar-modal").src = avatarList[j.avatarIndex] || avatarList[0];
+    document.getElementById("poster-name").textContent = j.displayName;
+    document.getElementById("poster-comment").textContent = j.comment || '';
+    document.getElementById("poster-stat-total").textContent = "คะแนนรวม: " + (j.stats.reduce((a,b)=>a+b,0));
+    setTimeout(()=>{ drawProfileRadar(j.stats,'posterRadarChart'); }, 80);
+    new bootstrap.Modal(document.getElementById('posterModal')).show();
+  }
+  function addJob() {
+    new bootstrap.Modal(document.getElementById('jobModal')).show();
+    document.getElementById("jobForm").reset();
+  }
+  document.getElementById("jobForm").onsubmit = function(e){
+    e.preventDefault();
+    const jobTitle = document.getElementById("jobTitle").value.trim();
+    const jobDesc = document.getElementById("jobDesc").value.trim();
+    const jobCat = document.getElementById("jobCat").value;
+    const jobBudget = document.getElementById("jobBudget").value.trim();
+    jobs.unshift({
+      title: jobTitle, desc: jobDesc, cat: jobCat, budget: jobBudget,
+      displayName: userName, avatarIndex: avatarIndex, comment: userComment, stats: skillStats
+    });
+    localStorage.setItem("jobBoard", JSON.stringify(jobs));
+    renderJobs();
+    bootstrap.Modal.getInstance(document.getElementById('jobModal')).hide();
+    return false;
+  }
+  function escapeHtml(text){
+    return (""+text).replace(/[&<>"']/g, (m) =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  renderJobs();
+
+  // ==== Floating Chat System ====
+  let currentChatUser = null;
+  let chatHistory = {};
+  // โหลด chatHistory จาก localStorage
+  try {
+    chatHistory = JSON.parse(localStorage.getItem("floatingChatHistory")||"{}");
+  } catch(e){ chatHistory = {}; }
+
+  function openChat(user, avatar) {
+    currentChatUser = user;
+    document.getElementById("floating-chat-box").style.display = "block";
+    document.getElementById("chat-title").textContent = "กำลังคุยกับ: " + user;
+    document.getElementById("chat-avatar").src = avatar;
+    renderChatMessages();
+    setTimeout(()=>{
+      let chat = document.getElementById("chat-messages");
+      chat.scrollTop = chat.scrollHeight;
+      document.getElementById("chat-input").focus();
+    }, 100);
+  }
+  function closeChat() {
+    document.getElementById("floating-chat-box").style.display = "none";
+    currentChatUser = null;
+  }
+  function sendChatMessage() {
+    let msgBox = document.getElementById("chat-input");
+    let msg = msgBox.value.trim();
+    if(!msg || !currentChatUser) return;
+    if(!chatHistory[currentChatUser]) chatHistory[currentChatUser] = [];
+    chatHistory[currentChatUser].push({ from: "me", text: msg, time: Date.now() });
+    localStorage.setItem("floatingChatHistory", JSON.stringify(chatHistory));
+    msgBox.value = "";
+    renderChatMessages();
+    setTimeout(()=>{
+      let chat = document.getElementById("chat-messages");
+      chat.scrollTop = chat.scrollHeight;
+    }, 60);
+  }
+  function renderChatMessages() {
+    let box = document.getElementById("chat-messages");
+    box.innerHTML = "";
+    let msgs = chatHistory[currentChatUser] || [];
+    if(msgs.length===0){
+      box.innerHTML = "<div style='text-align:center;color:#aaa;font-size:1em;'>--- เริ่มต้นบทสนทนา ---</div>";
+    } else {
+      msgs.forEach(m=>{
+        box.innerHTML += `<div style="margin-bottom:5px;text-align:${m.from==='me'?'right':'left'};">
+          <span style="background:${m.from==='me'?'#ffe478':'#ddd'};color:#222;padding:4px 10px;border-radius:8px;display:inline-block;max-width:75%;word-break:break-all;">
+            ${escapeHtml(m.text)}
+          </span>
+        </div>`;
+      });
+    }
+  }
+  document.getElementById("chat-input").addEventListener("keyup",function(e){
+    if(e.key==="Enter") sendChatMessage();
+  });
+
+  // ==== Floating Chat List Button ====
+  document.getElementById("chat-float-btn").onclick = function() {
+    // List of all chatted users (sorted by last message time)
+    let keys = Object.keys(chatHistory);
+    let list = document.getElementById("chat-user-list");
+    if(keys.length === 0){
+      list.innerHTML = `<div style="text-align:center; color:#eee; padding:18px 0;">ยังไม่มีประวัติแชทกับใคร</div>`;
+    } else {
+      // หา avatar จาก job หรือใช้ default
+      list.innerHTML = '';
+      let nameToAvatar = {};
+      jobs.forEach(j=>{
+        nameToAvatar[j.displayName] = avatarList[j.avatarIndex];
+      });
+      keys.sort((a,b)=>{
+        let lastA = (chatHistory[a]?.slice(-1)[0]?.time)||0;
+        let lastB = (chatHistory[b]?.slice(-1)[0]?.time)||0;
+        return lastB-lastA;
+      });
+      keys.forEach(user=>{
+        let avatar = nameToAvatar[user] || "img/av01.png";
+        let lastMsg = (chatHistory[user]?.slice(-1)[0]?.text)||"";
+        list.innerHTML += `
+          <div class="chat-user-row d-flex align-items-center p-2 mb-1 rounded" onclick="openChat('${escapeHtml(user)}','${avatar}')">
+            <img class="chat-user-avatar" src="${avatar}"> 
+            <span style="font-family:'Prompt',sans-serif;font-weight:600;font-size:1em;color:#ffe478;">${escapeHtml(user)}</span>
+            <span class="ms-2" style="color:#ffe47888;font-size:.94em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100px;">${escapeHtml(lastMsg)}</span>
+          </div>
+        `;
+      });
+    }
+    new bootstrap.Modal(document.getElementById("chat-list-modal")).show();
+  };
+
+  // ==== QUESTS ====
+  const QUESTS = [
+  {
+    label: "Programming",
+    stat: "Programming",
+    quests: [
+      { level:1, text:"int a=3,b=2; print(a+b) จะได้อะไร", options:["5","6","23"], answer:0 },
+      { level:2, text:"Python ใช้ตัวแปรอะไรสำหรับเก็บข้อความ?", options:["int","str","bool"], answer:1 },
+      { level:3, text:"อัลกอริทึมหมายถึงอะไร?", options:["ขั้นตอนแก้ปัญหา","โปรแกรม","ภาษา"], answer:0 },
+    ]
+  },
+  {
+    label: "Language",
+    stat: "Language",
+    quests: [
+      { level:1, text:"cat แปลว่าอะไร", options:["หมา","แมว","ปลา"], answer:1 },
+      { level:2, text:"see you คืออะไร", options:["ลาก่อน","ขอบคุณ","เจอกัน"], answer:2 },
+      { level:3, text:"He __ running.", options:["is","are","am"], answer:0 },
+    ]
+  },
+  {
+    label: "IoT",
+    stat: "IoT",
+    quests: [
+      { level:1, text:"IoT ย่อมาจาก?", options:["Internet of Things","Input or Touch","Install of Tool"], answer:0 },
+      { level:2, text:"เซนเซอร์ที่ใช้ตรวจจับอุณหภูมิ?", options:["LDR","DHT11","IR Sensor"], answer:1 },
+      { level:3, text:"ESP32 คืออะไร?", options:["เซิร์ฟเวอร์","ไมโครคอนโทรลเลอร์","โมเด็ม"], answer:1 },
+    ]
+  },
+  {
+    label: "Drawing/Design",
+    stat: "Drawing/Design",
+    quests: [
+      { level:1, text:"Adobe Photoshop ใช้สำหรับอะไร?", options:["ตัดต่อภาพ","เขียนโค้ด","เล่นเกม"], answer:0 },
+      { level:2, text:"แม่สีหลัก RGB มีสีอะไรบ้าง?", options:["แดง เขียว น้ำเงิน","แดง เหลือง น้ำเงิน","เขียว ม่วง ส้ม"], answer:0 },
+      { level:3, text:"ไฟล์ภาพที่พื้นหลังโปร่งใส?", options:["JPG","PNG","BMP"], answer:1 },
+    ]
+  },
+  {
+    label: "Critical & Creative Thinking",
+    stat: "Critical & Creative Thinking",
+    quests: [
+      { level:1, text:"ข้อใดคือการคิดเชิงวิเคราะห์?", options:["มองหลายมุม","ลอกเพื่อน","เดา"], answer:0 },
+      { level:2, text:"ข้อใดแสดงถึงความคิดสร้างสรรค์?", options:["ใช้ไอเดียเดิม","คัดลอก","คิดแบบใหม่"], answer:2 },
+      { level:3, text:"การตั้งคำถามเพื่อหาคำตอบเองเรียกว่า?", options:["คิดเชิงวิเคราะห์","คิดเชิงสร้างสรรค์","คิดซ้ำ"], answer:0 },
+    ]
+  },
+  {
+    label: "Digital & Tool Literacy",
+    stat: "Digital & Tool Literacy",
+    quests: [
+      { level:1, text:"Google Drive ใช้สำหรับ?", options:["ฝากไฟล์","ดูหนัง","สั่งอาหาร"], answer:0 },
+      { level:2, text:"Zoom คืออะไร?", options:["โปรแกรมประชุมออนไลน์","โปรแกรมวาดรูป","โปรแกรมคำนวณ"], answer:0 },
+      { level:3, text:"ควรตั้งรหัสผ่านอย่างไร?", options:["สั้น ง่าย","ยาก เดายาก","วันเกิด"], answer:1 },
+    ]
+  }
+];
+
+  document.getElementById('quest-float-btn').onclick = function() {
+    showQuestBoard();
+    new bootstrap.Modal(document.getElementById('questModal')).show();
+  };
+  function showQuestBoard() {
+    const box = document.getElementById("quest-select");
+    box.innerHTML = "<b>เลือกเควสด้านที่ต้องการ</b><br>";
+    QUESTS.forEach((qset, i) => {
+      for (let lv = 1; lv <= 3; lv++) {
+        box.innerHTML += `<button class="btn btn-outline-warning m-1" onclick="startQuest(${i},${lv})"><i class="bi bi-controller"></i> ${qset.label} Lv.${lv}</button>`;
+      }
+    });
+    document.getElementById("quest-form").classList.add("d-none");
+    document.getElementById("quest-result").textContent = "";
+  }
+  window.startQuest = function(qIndex, level) {
+    const questSet = QUESTS[qIndex];
+    const questions = questSet.quests.filter(q=>q.level===level);
+    const qWrap = document.getElementById("quest-questions");
+    qWrap.innerHTML = "";
+    questions.forEach((q, idx) => {
+      qWrap.innerHTML += `<div class="mb-3">${idx+1}. ${q.text}<br>
+        ${q.options.map((opt,i)=>`<label class="form-check-inline">
+          <input type="radio" required name="q${idx}" value="${i}"> ${opt}
+        </label>`).join(" ")}
+      </div>`;
+    });
+    document.getElementById("quest-select").innerHTML = `<b>เควส: ${questSet.label} Lv.${level}</b>`;
+    document.getElementById("quest-form").classList.remove("d-none");
+    document.getElementById("quest-result").textContent = "";
+    document.getElementById("quest-form").onsubmit = function(e){
+      e.preventDefault();
+      let correct = 0;
+      questions.forEach((q, idx) => {
+        const val = Number(document.querySelector(`[name="q${idx}"]:checked`).value);
+        if(val === q.answer) correct++;
+      });
+      if (correct === questions.length) {
+        updateStatAfterQuest(questSet.stat, level);
+        document.getElementById("quest-result").textContent = `ผ่านเควส! +${level} คะแนนในหมวด ${questSet.label}`;
+      } else {
+        document.getElementById("quest-result").textContent = "คุณตอบไม่ครบถูก ลองใหม่ได้!";
+      }
+      setTimeout(()=>{
+        skillStats = JSON.parse(localStorage.getItem("skillStats") || "[10,20,30,10,30,10]");
+        totalStat = skillStats.reduce((a,b)=>a+b,0);
+        renderJobs();
+        drawProfileRadar(skillStats,'radarChartModal');
+      },350);
+    };
+  };
+  function updateStatAfterQuest(statLabel, addPoint) {
+    let stats = JSON.parse(localStorage.getItem("skillStats") || "[10,20,30,10,30,10]");
+    const categories = ["IoT","Programming","Language","Drawing/Design","Critical & Creative Thinking","Digital & Tool Literacy"];
+    const idx = categories.indexOf(statLabel);
+    if (idx === -1) return;
+    stats[idx] = Math.min(100, stats[idx] + addPoint);
+    localStorage.setItem("skillStats", JSON.stringify(stats));
+    let totalStat = stats.reduce((a,b)=>a+b,0);
+    localStorage.setItem("totalStat", totalStat);
+  }
+  </script>
+</body>
+</html>

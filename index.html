@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>RPG Pixel Quiz</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { 
+      background: #28223e url('img/pixel-bg.gif'); 
+      font-family: 'Press Start 2P', 'Kanit', Arial, sans-serif; 
+      color: #fff; 
+      letter-spacing: 0.5px;
+    }
+    .container { 
+      background: rgba(36,20,62,0.93); 
+      border-radius: 22px; 
+      box-shadow: 0 0 28px #0007; 
+      margin-top: 38px; 
+      padding: 30px 18px; 
+      max-width: 650px;
+    }
+    .category-title { 
+      color: #ffe478; 
+      font-size: 1.02em; 
+      margin-top: 28px; 
+      display: flex; align-items: center;
+      gap: 8px;
+      font-family: 'Press Start 2P';
+      letter-spacing: 1px;
+    }
+    .category-title i { font-size: 1.5em; vertical-align: -2px;}
+    .question { 
+      margin-bottom: 18px; 
+      background: #392c52; 
+      border-radius: 11px; 
+      padding: 12px 16px; 
+      border:2px solid #715ba3;
+      font-size: 0.93em;
+    }
+    .score-badge { 
+      background: #36aaff; color: #fff; border-radius: 7px; 
+      padding: 2px 9px; font-size:0.95em; font-family: 'Press Start 2P';
+      letter-spacing: 1.2px;
+    }
+    .btn-pixel { 
+      font-family: 'Press Start 2P'; 
+      background: #ffe478; color: #532; 
+      border:2px solid #fdcf53; border-radius:8px; letter-spacing:1.2px;
+      transition: background 0.18s, color 0.18s;
+    }
+    .btn-pixel:hover { background: #fffbe5; color: #7e640a;}
+    .total-stat { 
+      background: #67e66e; color: #282; border-radius:9px; 
+      padding:4px 16px; font-family:'Press Start 2P'; font-size:1.09em;
+    }
+    .hidden { display:none !important; }
+    input[type="radio"] { accent-color: #ffe478; }
+    .pixel-bar {
+      display: inline-block; height: 12px; border-radius:5px; 
+      width: 90px; background: #32204e; margin-right: 5px; vertical-align: middle;
+      border: 1.4px solid #ffe478;
+      position: relative;
+      top:-1.5px;
+    }
+    .pixel-bar-inner {
+      background: linear-gradient(90deg, #ffe478 65%, #36aaff 100%);
+      height: 100%; border-radius:5px;
+    }
+    .rpg-logo { font-size:2.1em;color:#ffe478;text-shadow:0 0 16px #ffe47866,0 2px 3px #000c;font-family:'Press Start 2P';letter-spacing:2px;}
+    @media (max-width:800px){
+      .container {max-width:98vw;}
+      .rpg-logo {font-size:1.32em;}
+    }
+    @media (max-width:480px){
+      .container {padding:8px 2px;}
+      .rpg-logo {font-size:1em;}
+      .category-title {font-size:0.92em;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="quiz-section">
+    <div class="text-center">
+      <div class="rpg-logo my-1"><i class="bi bi-star-fill"></i> RPG SKILL TEST <i class="bi bi-star-fill"></i></div>
+      <p class="text-muted mb-3" style="font-size:0.97em;font-family:'Kanit';letter-spacing:0;">ตอบแบบทดสอบ RPG 6 สาย เพื่อปลดล็อคตัวละครและสเตตัส!</p>
+    </div>
+    <form id="quizForm"></form>
+    <div class="text-center mt-4">
+      <button type="submit" form="quizForm" class="btn btn-pixel px-4">ส่งแบบทดสอบ</button>
+    </div>
+  </div>
+  <div class="container hidden" id="sheet-section">
+    <h2 class="text-center mb-3" style="color:#ffe478;font-family:'Press Start 2P';">STAT RESULT</h2>
+    <div class="text-center mb-2">
+      <span id="stat-total" class="total-stat"></span>
+    </div>
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-2">
+        <ul style="font-size:0.99em;list-style: none;padding-left:0;">
+          <li><span class="score-badge" id="stat-iot"></span> <span style="margin-left:4px;">IoT</span></li>
+          <li><span class="score-badge" id="stat-programming"></span> <span style="margin-left:4px;">Programming</span></li>
+          <li><span class="score-badge" id="stat-language"></span> <span style="margin-left:4px;">Language</span></li>
+          <li><span class="score-badge" id="stat-design"></span> <span style="margin-left:4px;">Drawing/Design</span></li>
+          <li><span class="score-badge" id="stat-creative"></span> <span style="margin-left:4px;">Creative</span></li>
+          <li><span class="score-badge" id="stat-digital"></span> <span style="margin-left:4px;">Digital Literacy</span></li>
+        </ul>
+        <div class="text-center">
+          <button onclick="window.location.reload()" class="btn btn-secondary btn-pixel mt-2">ทำใหม่</button>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <canvas id="radarChart" width="230" height="230"></canvas>
+      </div>
+    </div>
+    <div class="text-center mt-3">
+      <button class="btn btn-success btn-pixel" id="go-to-avatar">ไปเลือก Avatar</button>
+    </div>
+  </div>
+<script>
+const categories = [
+  { label: "IoT", icon: `<i class="bi bi-cpu" style="color:#7af"></i>`, questions: [
+    { text: "คุณสามารถอธิบายว่า IoT คืออะไรให้คนอื่นฟังได้ชัดเจนแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณเคยตั้งค่า/ใช้งานอุปกรณ์ IoT จริงด้วยตัวเองบ่อยแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "ถ้ามีโจทย์ให้เชื่อมอุปกรณ์ IoT หลายตัวเข้าด้วยกัน คุณสามารถวางแผนได้เองไหม?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "เมื่ออุปกรณ์ IoT มีปัญหา คุณสามารถวิเคราะห์และแก้ไขเบื้องต้นได้เองไหม?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณติดตามข่าวสาร/เทคโนโลยี IoT ใหม่ ๆ เป็นประจำแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] }
+  ] },
+  { label: "Programming", icon: `<i class="bi bi-code-slash" style="color:#ffa"></i>`, questions: [
+    { text: "คุณสามารถอธิบาย flow การทำงานของโปรแกรม/อัลกอริทึมพื้นฐานให้เพื่อนได้ไหม?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณสามารถเขียนโปรแกรมแก้ปัญหาเบื้องต้นได้ด้วยตัวเองแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "หากมีบั๊กในโปรแกรม คุณสามารถ debug และแก้ไขได้เองหรือไม่?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณสามารถใช้ภาษาโปรแกรมมากกว่า 1 ภาษา (Python, C, Java ฯลฯ) ได้แค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณเคยร่วมแข่งขัน/ทำโครงงานเขียนโปรแกรมจริงหรือไม่?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] }
+  ] },
+  { label: "Language", icon: `<i class="bi bi-translate" style="color:#f7a"></i>`, questions: [
+    { text: "คุณสามารถพูด/สื่อสารภาษาอังกฤษกับชาวต่างชาติได้ดีแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณสามารถอ่านและจับใจความบทความภาษาอังกฤษ/ภาษาต่างประเทศได้ดีแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณสามารถเขียนอีเมล/รายงานเป็นภาษาอังกฤษ (หรือภาษาอื่น) ได้หรือไม่?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณเคยสอบวัดระดับภาษาอังกฤษ (เช่น TOEIC, IELTS) หรือมีผลคะแนนไหม?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณกล้าใช้ภาษาต่างประเทศในชีวิตจริง (เดินทาง, ทำงาน, ประชุม ฯลฯ) แค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] }
+  ] },
+  { label: "Drawing/Design", icon: `<i class="bi bi-brush" style="color:#aef"></i>`, questions: [
+    { text: "คุณมั่นใจในการวาดภาพ/ออกแบบงานสร้างสรรค์ของตัวเองแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณสามารถใช้โปรแกรมออกแบบ (เช่น Photoshop, Canva, Illustrator, Figma) ได้ดีแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "เวลาทำงานออกแบบ คุณสามารถอธิบาย “แนวคิด/คอนเซ็ปต์” ของงานตัวเองให้คนอื่นเข้าใจไหม?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณเคยได้รับรางวัล/คำชมเชยในงานออกแบบ หรือมี portfolio ผลงานจริงหรือไม่?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณติดตามเทรนด์หรือแรงบันดาลใจงานออกแบบใหม่ ๆ เป็นประจำแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] }
+  ] },
+  { label: "Critical & Creative", icon: `<i class="bi bi-lightbulb" style="color:#fd5"></i>`, questions: [
+    { text: "เมื่อเจอปัญหาใหม่ ๆ คุณสามารถคิดวิเคราะห์/แก้ปัญหาโดยไม่ลอกใครได้ไหม?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณมักมี “ไอเดียใหม่” ที่ไม่ซ้ำใครเวลาทำงาน/โครงงานหรือไม่?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณสามารถให้เหตุผล/อธิบายการตัดสินใจของตัวเองอย่างมีตรรกะได้ดีแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณชอบตั้งคำถามหรือสงสัยในสิ่งที่เรียน/อ่าน/เจอมากน้อยแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณเคยมีประสบการณ์คิดนอกกรอบหรือทำอะไรใหม่ ๆ จนคนรอบข้างทึ่งไหม?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] }
+  ] },
+  { label: "Digital Literacy", icon: `<i class="bi bi-tools" style="color:#7fa"></i>`, questions: [
+    { text: "คุณสามารถใช้ Microsoft Office (Word, Excel, PowerPoint) หรือ Google Workspace ได้คล่องแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณสามารถใช้เครื่องมือออนไลน์ (เช่น Zoom, Trello, Slack, Google Drive) ทำงานร่วมกับคนอื่นได้ดีแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณรู้จักและระวังเรื่อง “ความปลอดภัยไซเบอร์” (ตั้งรหัสผ่าน, ระวัง phishing ฯลฯ) แค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณเคยใช้หรือจัดการข้อมูล/ไฟล์จำนวนมากในคอมพิวเตอร์หรือคลาวด์ไหม?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] },
+    { text: "คุณสามารถเรียนรู้/ใช้งานเครื่องมือดิจิทัลใหม่ ๆ ได้ด้วยตัวเองโดยไม่ต้องให้ใครสอนแค่ไหน?", options: ["มาก", "ปานกลาง", "น้อย"], scores: [2,1,0] }
+  ] }
+];
+
+// Create quiz
+const quizForm = document.getElementById('quizForm');
+categories.forEach((cat, ci) => {
+  const group = document.createElement('div');
+  group.innerHTML = `<div class="category-title">${cat.icon} ${cat.label}</div>`;
+  cat.questions.forEach((q, qi) => {
+    const qname = `q_${ci}_${qi}`;
+    let html = `<div class="question">${qi+1}. ${q.text}<br>`;
+    q.options.forEach((opt, opti) => {
+      html += `<label class="form-check-inline"><input type="radio" name="${qname}" value="${opti}" required> ${opt}</label> `;
+    });
+    html += `</div>`;
+    group.innerHTML += html;
+  });
+  quizForm.appendChild(group);
+});
+
+// On submit
+let stats = [];
+quizForm.onsubmit = function(e){
+  e.preventDefault();
+  stats = [];
+  categories.forEach((cat, ci) => {
+    let selfScore = 0, selfMax = 0;
+    cat.questions.forEach((q, qi) => {
+      const qname = `q_${ci}_${qi}`;
+      const ans = Number(quizForm[qname].value);
+      selfScore += q.scores[ans];
+      selfMax += 2;
+    });
+    let stat = selfMax>0? Math.round(((selfScore/selfMax)*10)) : 0; // max 10
+    stat = Math.min(10, stat); // จำกัดไม่เกิน 10
+    stats.push(stat);
+  });
+  let totalStat = stats.reduce((a,b)=>a+b,0);
+  localStorage.setItem("skillStats", JSON.stringify(stats));
+  localStorage.setItem("totalStat", totalStat);
+
+  document.getElementById('quiz-section').classList.add('hidden');
+  document.getElementById('sheet-section').classList.remove('hidden');
+  document.getElementById('stat-total').textContent = `คะแนนรวม: ${totalStat} / 60`;
+  document.getElementById('stat-iot').textContent = stats[0];
+  document.getElementById('stat-programming').textContent = stats[1];
+  document.getElementById('stat-language').textContent = stats[2];
+  document.getElementById('stat-design').textContent = stats[3];
+  document.getElementById('stat-creative').textContent = stats[4];
+  document.getElementById('stat-digital').textContent = stats[5];
+
+  new Chart(document.getElementById('radarChart').getContext('2d'), {
+    type: 'radar',
+    data: { 
+      labels: categories.map(x=>x.label), 
+      datasets: [{
+        data: stats, 
+        label: "Stats", 
+        fill: true, 
+        borderColor:'#ffe478', 
+        backgroundColor:'rgba(255,228,120,0.21)', 
+        pointBackgroundColor:'#fff3b0' 
+      }]
+    },
+    options: { 
+      plugins: { legend: { display: false } }, 
+      scales: { r: { min:0, max:10, ticks:{stepSize:2}, pointLabels: {font: {family: 'Press Start 2P', size: 13} } } }
+    }
+  });
+};
+
+document.getElementById("go-to-avatar").onclick = function() {
+  window.location = "avatar.html";
+}
+</script>
+</body>
+</html>
